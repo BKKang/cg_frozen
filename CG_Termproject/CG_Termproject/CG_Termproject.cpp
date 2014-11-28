@@ -3,10 +3,11 @@
 #include <stdio.h>
 #include <glext.h>
 static int Time = 0;
-GLuint LoadTexture(const char* filename){
+static int currentTime = 0;
+GLuint LoadTexture(const char* filename, bool alpha){
 	GLuint texture;
+	GLuint* data;
 	int width, height;
-	unsigned char* data;
 	FILE * file;
 
 	file = fopen(filename, "rb");
@@ -15,31 +16,35 @@ GLuint LoadTexture(const char* filename){
 	
 	width = 160;
 	height = 160;
-
-	data = (unsigned char *)malloc(width * height* 3);
-	fread(data, width * height * 3, 1, file);
+	
+	data = new GLuint[width * height];
+    fread( data, width * height * sizeof(GLuint), 1, file); 
 	fclose(file);
 
-	for(int i=0; i<width * height; ++i){
-		int index = i*3;
-		unsigned char B, R;
-		B = data[index];
-		R = data[index+2];
-
-		data[index] = R;
-		data[index+2] = B;
-	}
-	
 	glGenTextures(1, &texture);
 	glBindTexture(GL_TEXTURE_2D, texture);
-	glTexEnvf( GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST );
+	glTexEnvf(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE,GL_MODULATE);
+	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER,GL_LINEAR_MIPMAP_NEAREST);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR);
+	
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT);
+	glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT);
+	
+	if(alpha) //for .bmp 32 bit
+	{
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1); 
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, data);
+		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGBA, width, height, GL_RGBA, GL_UNSIGNED_BYTE, data);
+	}
+	else //for .bmp 24 bit
+	{
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 4); 
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
+		gluBuild2DMipmaps(GL_TEXTURE_2D, GL_RGB, width, height, GL_BGR, GL_UNSIGNED_BYTE, data);
+	}
 
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER,GL_LINEAR );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S,GL_REPEAT );
-	glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T,GL_REPEAT );
-	gluBuild2DMipmaps( GL_TEXTURE_2D, 3, width, height,GL_RGB, GL_UNSIGNED_BYTE, data );
-	free( data );
+	delete(data);
 
 	return texture;
 }
@@ -47,9 +52,9 @@ void DrawBg(void){
 	glDisable(GL_CULL_FACE);
 	GLuint texBG[3];
 	GLfloat size = 160.0;
-	texBG[0] = LoadTexture("bg_right.bmp");
-	texBG[1] = LoadTexture("bg_bottom.bmp");
-	texBG[2] = LoadTexture("bg_front.bmp");
+	texBG[0] = LoadTexture("bg_front.bmp",FALSE);
+	texBG[1] = LoadTexture("bg_bottom.bmp",FALSE);
+	texBG[2] = LoadTexture("bg_left.bmp",FALSE);
 	glEnable(GL_TEXTURE_2D);
 
 	glBindTexture(GL_TEXTURE_2D, texBG[0]);
@@ -86,11 +91,12 @@ void DrawCastle(void){
 	GLUquadricObj *base = gluNewQuadric();
 	
 	gluQuadricDrawStyle(base, GLU_FILL);
-	gluQuadricNormals(base, GLU_SMOOTH);
+	//gluQuadricNormals(base, GLU_SMOOTH);
 	gluQuadricTexture(base, GL_TRUE);
 
 	GLuint texID;
-	texID = LoadTexture("iceTex2.bmp");
+	//texID = LoadTexture("iceTex3.bmp",TRUE);
+	texID = LoadTexture("iceTex2.bmp",FALSE);
 	
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texID);
@@ -104,6 +110,38 @@ void DrawCastle(void){
 	/*2nd floor*/
 	glTranslatef(0.0, 0.0, 20.0); //height
 	gluDisk(base, 0, 20, 6, 1);
+
+/**/
+
+	//glTranslatef(-10.0, 10.0, 0.0);
+
+	/*1st floor*/
+	glTranslatef(0.0, 0.0, -30.0); //height of 1st floor + ground floor
+
+	/*ground floor*/
+
+	gluCylinder(base, 30, 25, 10, 20, 1);
+	glTranslatef(0, 0, 10);
+	gluCylinder(base, 20, 20, 20, 6, 1);
+}
+void DrawCastleTop(void){
+	glEnable(GL_CULL_FACE);
+
+	GLUquadricObj *base = gluNewQuadric();
+	
+	gluQuadricDrawStyle(base, GLU_FILL);
+	//gluQuadricNormals(base, GLU_SMOOTH);
+	gluQuadricTexture(base, GL_TRUE);
+
+	GLuint texID;
+	//texID = LoadTexture("iceTex3.bmp",TRUE);
+	texID = LoadTexture("iceTex2.bmp",FALSE);
+	
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, texID);
+	
+	//glTranslatef(40.0, 40.0, 0);
+	glTranslatef(0, 0, -150.0);
 
 	/*2nd floor pillar back,right two*/
 	glTranslatef(-10.0, -10.0, 0.0); 
@@ -125,7 +163,7 @@ void DrawCastle(void){
 	/*2nd floor base*/
 	glTranslatef(10.0, -10.0, 0.0);
 	gluCylinder(base, 11.5, 11.5, 15, 6, 1);
-	
+
 	/*3rd floor*/
 	glTranslatef(0.0, 0.0, 15.0);//height
 	gluDisk(base, 0, 11.5, 6, 1);
@@ -197,23 +235,32 @@ void DrawCastle(void){
 	gluCylinder(base, 5, 0, 20, 5, 1);
 	glTranslatef(0.0, 0.0, -15.0);
 
-	glTranslatef(-10.0, 10.0, 0.0);
-
-	/*1st floor*/
-	glTranslatef(0.0, 0.0, -30.0); //height of 1st floor + ground floor
-
-	/*ground floor*/
-
-	gluCylinder(base, 30, 25, 10, 20, 1);
-	glTranslatef(0, 0, 10);
-	gluCylinder(base, 20, 20, 20, 6, 1);
 }
 void MakeCastle(void){
 	glPushMatrix();
-	glRotatef((GLfloat) Time, 0.0, 0.0, 1.0);
 	float temp = Time/10;
-	glTranslatef(0, 0, temp);
-	DrawCastle();
+	
+	if(0 <= currentTime && currentTime < 6000){
+		glRotatef((GLfloat) Time, 0.0, 0.0, 1.0);
+		glTranslatef(0, 0, temp);
+		DrawCastle();
+	}
+	else if(6000 <= currentTime && currentTime < 10000){
+		glTranslatef(0, 0, 100);
+		DrawCastle();
+		glTranslatef(0, 0 ,0);
+		glRotatef((GLfloat) Time, 0.0, 0.0, 1.0);
+		glTranslatef(0, 0, temp);
+		DrawCastleTop();
+	}
+	else if(10000 <= currentTime){
+		glTranslatef(0, 0, 100);
+		DrawCastle();
+		glTranslatef(0, 0, 170);
+		DrawCastleTop();
+	}
+
+	glutPostRedisplay();
 	glPopMatrix();
 }
 void display(void){
@@ -221,7 +268,7 @@ void display(void){
 
 	glColor3f(0.0, 0.0, 1.0);
 	glLoadIdentity();
-	gluLookAt(10.0, 10.0, 10.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
+	gluLookAt(9.0, 9.0, 9.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0);
 	
 	//성 보이는 크기 조절
 	glScalef(0.15, 0.15, 0.15);
@@ -230,13 +277,13 @@ void display(void){
 	glEnable(GL_LIGHT0);
 	
 	GLfloat light_pos[4] = {500.0f, 500.0f, 500.0f, 1.0f};
-	GLfloat light_dif[4] = {0.3,0.3,0.3,1.0};
+	GLfloat light_dif[4] = {0.35,0.35,0.35,1.0};
 	glLightfv(GL_LIGHT0, GL_POSITION, light_pos);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, light_dif);
 
 	//배경그리기
 	DrawBg();
-	MakeCastle();	
+	MakeCastle();
 
 	glutSwapBuffers();
 }
@@ -249,13 +296,16 @@ void reshape(int w, int h){
 	glMatrixMode(GL_MODELVIEW);
 }
 void MyTimer(int Value){
+	currentTime = glutGet(GLUT_ELAPSED_TIME);
+	printf("current: %d\n", currentTime);
+	
 	Time = (Time + 10) % 1800;
 	glutPostRedisplay();
 	glutTimerFunc(40, MyTimer, 1);
 }
 int main(int argc, char **argv){
 	glutInit(&argc, argv);
-	glutInitDisplayMode(GLUT_DOUBLE | GLUT_RGB);
+	glutInitDisplayMode(GLUT_DEPTH | GLUT_DOUBLE | GLUT_RGBA);
 	glutInitWindowSize(600,600);
 	glutCreateWindow("Frozen");
 	//glClearColor(1.0, 1.0, 1.0, 1.0);
