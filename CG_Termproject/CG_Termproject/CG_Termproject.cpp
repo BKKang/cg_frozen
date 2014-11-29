@@ -85,7 +85,7 @@ void DrawBg(void){
 	glEnd();
 }
 
-void DrawCastle(void){
+void DrawCastle(int texID){
 	glEnable(GL_CULL_FACE);
 
 	GLUquadricObj *base = gluNewQuadric();
@@ -94,9 +94,9 @@ void DrawCastle(void){
 	//gluQuadricNormals(base, GLU_SMOOTH);
 	gluQuadricTexture(base, GL_TRUE);
 
-	GLuint texID;
+	//GLuint texID;
 	//texID = LoadTexture("iceTex3.bmp",TRUE);
-	texID = LoadTexture("iceTex2.bmp",FALSE);
+	//texID = LoadTexture("iceTex2.bmp",FALSE);
 	
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texID);
@@ -124,7 +124,7 @@ void DrawCastle(void){
 	glTranslatef(0, 0, 10);
 	gluCylinder(base, 20, 20, 20, 6, 1);
 }
-void DrawCastleTop(void){
+void DrawCastleTop(int texID){
 	glEnable(GL_CULL_FACE);
 
 	GLUquadricObj *base = gluNewQuadric();
@@ -133,9 +133,9 @@ void DrawCastleTop(void){
 	//gluQuadricNormals(base, GLU_SMOOTH);
 	gluQuadricTexture(base, GL_TRUE);
 
-	GLuint texID;
+	//GLuint texID;
 	//texID = LoadTexture("iceTex3.bmp",TRUE);
-	texID = LoadTexture("iceTex2.bmp",FALSE);
+	//texID = LoadTexture("iceTex2.bmp",FALSE);
 	
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, texID);
@@ -239,27 +239,42 @@ void DrawCastleTop(void){
 void MakeCastle(void){
 	glPushMatrix();
 	float temp = Time/10;
+	GLuint texID;
 	
 	if(0 <= currentTime && currentTime < 6000){
+		glColor4f(1.0, 1.0, 1.0, 0.5);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		texID = LoadTexture("iceTex3.bmp",TRUE);
 		glRotatef((GLfloat) Time, 0.0, 0.0, 1.0);
 		glTranslatef(0, 0, temp);
-		DrawCastle();
+		DrawCastle(texID);
+		glDisable(GL_BLEND);
 	}
-	else if(6000 <= currentTime && currentTime < 10000){
+	else if(6000 <= currentTime && currentTime < 10050){
+		texID = LoadTexture("iceTex2.bmp",FALSE);
 		glTranslatef(0, 0, 100);
-		DrawCastle();
+		DrawCastle(texID);
+		
+		glColor4f(1.0, 1.0, 1.0, 0.5);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		texID = LoadTexture("iceTex3.bmp",TRUE);
+
 		glTranslatef(0, 0 ,0);
 		glRotatef((GLfloat) Time, 0.0, 0.0, 1.0);
 		glTranslatef(0, 0, temp);
-		DrawCastleTop();
+		DrawCastleTop(texID);
+		glDisable(GL_BLEND);
 	}
-	else if(10000 <= currentTime){
+	else if(10050 <= currentTime){
+		texID = LoadTexture("iceTex2.bmp",FALSE);
+		
 		glTranslatef(0, 0, 100);
-		DrawCastle();
+		DrawCastle(texID);
 		glTranslatef(0, 0, 170);
-		DrawCastleTop();
+		DrawCastleTop(texID);
 	}
-
 	glutPostRedisplay();
 	glPopMatrix();
 }

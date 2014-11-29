@@ -1,4 +1,4 @@
-﻿빌드 시작: 2014-11-29 오전 2:41:09
+﻿빌드 시작: 2014-11-29 오후 1:26:51
      1>2 노드의 "C:\Users\SAMSUNG\cg_frozen\CG_Termproject\CG_Termproject\CG_Termproject.vcxproj" 프로젝트(build 대상)입니다.
      1>InitializeBuildStatus:
          "AlwaysCreate"이(가) 지정되었기 때문에 "Debug\CG_Termproject.unsuccessfulbuild"을(를) 만들고 있습니다.
@@ -25,4 +25,4 @@
 
 빌드했습니다.
 
-경과 시간: 00:00:02.06
+경과 시간: 00:00:01.36
